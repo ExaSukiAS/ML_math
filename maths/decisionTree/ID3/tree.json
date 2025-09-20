@@ -1,0 +1,24 @@
+{
+    "Vehicle": {
+        "Truck": 1,
+        "Car": {
+            "Speed": {
+                "high": 1,
+                "low": {
+                    "body part hit": {
+                        "head": 1,
+                        "chest": 0,
+                        "limb": 0
+                    }
+                }
+            }
+        },
+        "Bike": {
+            "Contact direction": {
+                "direct": 1,
+                "side": 0,
+                "angle": 0
+            }
+        }
+    }
+}

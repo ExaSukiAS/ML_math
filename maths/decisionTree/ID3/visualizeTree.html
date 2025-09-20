@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <title>D3 Decision Tree</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body{
+            background-color: #131314;
+        }
+        .node circle {
+            fill: #131314;
+            stroke: steelblue;
+            stroke-width: 2px;
+        }
+        .node text {
+            font: 13px sans-serif;
+            fill: white;
+        }
+        .link {
+            fill: none;
+            stroke: #6e6e6e;
+            stroke-width: 1.5px;
+        }
+    </style>
+    </head>
+    <body>
+        <svg width="1200" height="600"></svg>
+    <script>
+        fetch('tree.json')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(text => {
+                function convertToD3Tree(obj, nodeName = "root") {
+                    if (typeof obj === "number") {
+                        return { name: nodeName, value: obj };
+                    }
+                    if (typeof obj === "object") {
+                        const children = Object.entries(obj).map(([key, val]) =>
+                        convertToD3Tree(val, key)
+                        );
+                        return { name: nodeName, children };
+                    }
+                    return { name: nodeName };
+                }   
+                console.log(text);
+                let nestedData = JSON.parse(text);
+                const data = convertToD3Tree(nestedData);
+
+                const width = 1000;
+                const height = 600;
+
+                const root = d3.hierarchy(data);
+                const treeLayout = d3.tree().size([height, width]);
+                treeLayout(root);
+
+                const svg = d3.select("svg");
+                const g = svg.append("g").attr("transform", "translate(100,0)");
+
+                // Links
+                g.selectAll(".link")
+                .data(root.links())
+                .join("path")
+                .attr("class", "link")
+                .attr("d", d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x));
+
+                // Nodes
+                const node = g.selectAll(".node")
+                .data(root.descendants())
+                .join("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${d.y},${d.x})`);
+
+                node.append("circle")
+                .attr("r", 5);
+
+                node.append("text")
+                .attr("dy", 3)
+                .attr("x", d => d.children ? -10 : 10)
+                .style("text-anchor", d => d.children ? "end" : "start")
+                .text(d =>
+                    d.data.value !== undefined
+                    ? `${d.data.name}: ${d.data.value}`
+                    : d.data.name
+                );
+                })
+                .catch(error => {
+                    console.error('There was a problem fetching the file:', error);
+                });
+    </script>
+    </body>
+</html>
